@@ -12,10 +12,6 @@ dbConnection();
 // Public directory
 app.use(express.static('public'));
 
-// Routes
-app.use('/api/auth', require('./routes/auth'));
-
-
 // Read and parse the body
 app.use(express.json());
 
