@@ -1,6 +1,7 @@
 const { response } = require("express");
 const bcrypt = require("bcryptjs");
 const User = require("../models/User");
+const { generateJWT } = require("../helpers/jwt");
 
 // Function to create a new user
 const createUser = async (req, res = response) => {
@@ -24,10 +25,14 @@ const createUser = async (req, res = response) => {
 
     await user.save();
 
+    // Generate JWT
+    const token = await generateJWT(user.id, user.name);
+
     res.status(201).json({
       ok: true,
       uid: user.id,
       name: user.name,
+      token,
     });
   } catch (error) {
     console.log(error);
@@ -38,23 +43,57 @@ const createUser = async (req, res = response) => {
   }
 };
 
-// Function to login a user
 const loginUser = async (req, res = response) => {
   const { email, password } = req.body;
 
-  res.status(201).json({
-    ok: true,
-    message: "login",
-    email,
-    password,
-  });
+  try {
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(400).json({
+        ok: false,
+        msg: "A user already exists with that email",
+      });
+    }
+
+    // Confirm the passwords
+    const validPassword = bcrypt.compareSync(password, user.password);
+
+    if (!validPassword) {
+      return res.status(400).json({
+        ok: false,
+        msg: "Incorrect password",
+      });
+    }
+
+    // Generate JWT
+    const token = await generateJWT(user.id, user.name);
+
+    res.json({
+      ok: true,
+      uid: user.id,
+      name: user.name,
+      token,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      ok: false,
+      msg: "Please speak with the administrator",
+    });
+  }
 };
 
 // Function to revalidate a token
 const revalidateToken = async (req, res = response) => {
+  const { uid, name } = req;
+
+  // Generate JWT
+  const token = await generateJWT(uid, name);
+
   res.json({
     ok: true,
-    message: "renew",
+    token,
   });
 };
 
