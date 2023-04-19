@@ -1,9 +1,12 @@
 import React, { useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
 
 import moment from "moment";
 import Modal from "react-modal";
 import DateTimePicker from "react-datetime-picker";
 import Swal from "sweetalert2";
+
+import { uiCloseModal } from "../../actions/ui";
 
 const customStyles = {
   content: {
@@ -29,7 +32,8 @@ const initEvent = {
 
 export const CalendarModal = () => {
   const { modalOpen } = useSelector((state) => state.ui);
-  const { activeEvent } = useSelector((state) => state.calendar);
+
+  const dispatch = useDispatch();
 
   const [dateStart, setDateStart] = useState(now.toDate());
   const [dateEnd, setDateEnd] = useState(nowPlus1.toDate());
@@ -39,14 +43,6 @@ export const CalendarModal = () => {
 
   const { notes, title, start, end } = formValues;
 
-  useEffect(() => {
-    if (activeEvent) {
-      setFormValues(activeEvent);
-    } else {
-      setFormValues(initEvent);
-    }
-  }, [activeEvent, setFormValues]);
-
   const handleInputChange = ({ target }) => {
     setFormValues({
       ...formValues,
@@ -54,7 +50,9 @@ export const CalendarModal = () => {
     });
   };
 
-  const closeModal = () => {};
+  const closeModal = () => {
+    dispatch(uiCloseModal());
+  };
 
   const handleStartDateChange = (e) => {
     setDateStart(e);
@@ -103,7 +101,6 @@ export const CalendarModal = () => {
       className="modal"
       overlayClassName="modal-fondo"
     >
-      <h1> {activeEvent ? "Editar evento" : "Nuevo evento"} </h1>
       <hr />
       <form className="container" onSubmit={handleSubmitForm}>
         <div className="form-group">
@@ -131,7 +128,7 @@ export const CalendarModal = () => {
           <input
             type="text"
             className={`form-control ${!titleValid && "is-invalid"} `}
-            placeholder="Título del evento"
+            placeholder="Event Title"
             name="title"
             autoComplete="off"
             value={title}
@@ -146,7 +143,7 @@ export const CalendarModal = () => {
           <textarea
             type="text"
             className="form-control"
-            placeholder="Notas"
+            placeholder="Notes"
             rows="5"
             name="notes"
             value={notes}
