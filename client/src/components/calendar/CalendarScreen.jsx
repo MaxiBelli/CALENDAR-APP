@@ -7,30 +7,22 @@ import { Navbar } from "../ui/Navbar";
 import { CalendarEvent } from "./CalendarEvent";
 import { CalendarModal } from "./CalendarModal";
 
-import { uiOpenModal } from "../../actions/ui";
+import { uiOpenModal } from "../../redux/slices/uiSlices";
+import {
+  eventSetActive,
+  eventClearActiveEvent,
+} from "../../redux/slices/calendarSlices";
 
 import "react-big-calendar/lib/css/react-big-calendar.css";
+import { AddNewFab } from "../ui/AddNewFab";
+import { DeleteEventFab } from "../ui/DeleteEventFab";
 
 const localizer = momentLocalizer(moment);
 
-const events = [
-  {
-    title: "Cumpleaños",
-    start: moment().toDate(),
-    end: moment().add(2, "hours").toDate(),
-    bgcolor: "#fafafa",
-    user: {
-      _id: "123",
-      name: "Maximiliano",
-    },
-  },
-];
-
 export const CalendarScreen = () => {
- 
-    const dispatch = useDispatch();
+  const dispatch = useDispatch();
+  const { events, activeEvent } = useSelector((state) => state.calendar);
 
-  // Utilización del hook useState para manejar el estado de la última vista seleccionada por el usuario
   const [lastView, setLastView] = useState(
     localStorage.getItem("lastView") || "month"
   );
@@ -39,15 +31,18 @@ export const CalendarScreen = () => {
     dispatch(uiOpenModal());
   };
 
-  const onSelectEvent = (e) => {};
+  const onSelectEvent = (e) => {
+    dispatch(eventSetActive(e));
+  };
 
   const onViewChange = (e) => {
     setLastView(e);
-
     localStorage.setItem("lastView", e);
   };
 
-  const onSelectSlot = (e) => {};
+  const onSelectSlot = (e) => {
+    dispatch(eventClearActiveEvent());
+  };
 
   const eventStyleGetter = (event, start, end, isSelected) => {
     const style = {
@@ -83,6 +78,9 @@ export const CalendarScreen = () => {
           event: CalendarEvent,
         }}
       />
+      <AddNewFab />
+
+      {activeEvent && <DeleteEventFab />}
 
       <CalendarModal />
     </div>
